@@ -97,6 +97,7 @@ public class MainActivity extends ActionBarActivity {
 
             // Will contain the raw JSON response as a string.
             String forecastJsonStr = null;
+            String test;
 
             try {
                 // Construct the URL for the OpenWeatherMap query
