@@ -14,7 +14,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -30,6 +29,7 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Created by Spoooon on 6/27/2015.
@@ -38,6 +38,7 @@ public class ForecastFragment extends Fragment {
 
 
     private static final String LOG_TAG = "sunshine" ;
+    private ArrayAdapter<String> mForecastArrayAdapter; 
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -59,7 +60,6 @@ public class ForecastFragment extends Fragment {
         if (id == R.id.action_refresh) {
             FetchWeatherTask task = new FetchWeatherTask();
             task.execute(11220);
-
         }
 
         return super.onOptionsItemSelected(item);
@@ -76,7 +76,7 @@ public class ForecastFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
 
-        String[] forecastArray = {
+        String[] forecastArray = new String[]{
                 "Today - Sunny - 88/63",
                 "Tomorrow - Sunny - 88/63",
                 "Monday - Sunny - 88/63",
@@ -101,7 +101,7 @@ public class ForecastFragment extends Fragment {
 
         ArrayList<String> weekForecast = new ArrayList<>(
                 Arrays.asList(forecastArray));
-        ArrayAdapter<String> mForecastArrayAdapter = new ArrayAdapter<>(getActivity(),
+         mForecastArrayAdapter = new ArrayAdapter<>(getActivity(),
                 R.layout.list_item_forecast, R.id.list_item_forecast_textview, weekForecast);
 
         ListView listView = (ListView) rootView.findViewById(R.id.listview_forecast);
@@ -165,7 +165,6 @@ public class ForecastFragment extends Fragment {
                     forecastJsonStr = null;
                 }
                 forecastJsonStr = buffer.toString();
-                Log.v("sunshine", forecastJsonStr);
                 try {
                     Log.d("sunshine", "Max Temp: " + String.valueOf(WeatherDataParser.getMaxTemperatureForDay(forecastJsonStr, 0)));
                 } catch (Exception e) {
@@ -194,6 +193,16 @@ public class ForecastFragment extends Fragment {
                 e.printStackTrace();
             }
             return weeklyForecast;
+        }
+
+        @Override
+        protected void onPostExecute(String[] strings) {
+            super.onPostExecute(strings);
+
+            mForecastArrayAdapter.clear();
+            for(String dailyForecast :strings ) {
+                mForecastArrayAdapter.add(dailyForecast);
+            }
         }
 
         private URL buildURL(String zip) throws MalformedURLException {
@@ -312,9 +321,6 @@ public class ForecastFragment extends Fragment {
                 resultStrs[i] = day + " - " + description + " - " + highAndLow;
             }
 
-            for (String s : resultStrs) {
-                Log.v(LOG_TAG, "Forecast entry: " + s);
-            }
             return resultStrs;
 
         }
